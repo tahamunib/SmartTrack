@@ -1,0 +1,27 @@
+import cv2
+import numpy as np
+
+
+##cap = cv2.VideoCapture(0)
+##
+##while(1):
+##
+##    ret,frame = cap.read()
+##    cv2.imshow('Video',frame)
+##    k = cv2.waitKey(30) & 0xff
+##    if k == 27:
+##        break
+##    elif k == ord('s'):
+##        cv2.imwrite('Sub2.png',frame)
+        
+
+img1 = cv2.imread('Sub1.png')
+img2 = cv2.imread('Sub2.png')
+
+img3 = cv2.subtract(img1,img2)
+
+cv2.imshow('FG',img3)
+cv2.waitKey(0)
+            
+##cap.release()
+##cv2.destroyAllWindows()

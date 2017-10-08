@@ -1,0 +1,201 @@
+import numpy as np
+import cv2
+from matplotlib import pyplot as plt
+
+# --------- objSelect function Start ---------
+
+
+
+def objSelect(event,x,y,flags,captured):
+    global roiPts,img1,kp1,des1,orb,img3,cap
+    
+    if event == cv2.EVENT_LBUTTONDOWN and len(roiPts) < 2:
+        
+        roiPts.append((x,y))
+        cv2.circle(captured,(x,y),4,(0,255,0),2)
+        
+        cv2.imshow('Captured',captured)
+
+    if event == cv2.EVENT_MOUSEMOVE and len(roiPts) == 2:
+        cv2.destroyWindow('Captured')
+        
+        
+        roiPts = np.array(roiPts)
+        #print param
+        s = roiPts.sum(axis = 1)
+        tl = roiPts[np.argmin(s)]
+        br = roiPts[np.argmax(s)]
+
+        diff = np.diff(roiPts,axis=1)
+        tr = roiPts[np.argmin(diff)]
+        bl = roiPts[np.argmax(diff)]
+
+        
+        
+        first = (tl[0],tl[1])
+        second = (tr[0],tr[1])
+        third = (br[0],br[1])
+        fourth = (bl[0],bl[1])
+
+        cv2.rectangle(captured,first,third,(0,255,0),2)
+        
+        
+
+        ROI = captured[tl[1]:br[1],tl[0]:br[0]]
+        
+        roiBox = (tl[0],tl[1],br[0],br[1])    
+        ROIHsv = cv2.cvtColor(ROI,cv2.COLOR_BGR2HSV)
+        ROIGray = cv2.cvtColor(ROI,cv2.COLOR_BGR2GRAY)
+
+        mask = cv2.inRange(ROIHsv,np.array((0.,60.,32.)),np.array((255.,255.,180.)))
+
+        roi_hist = cv2.calcHist([ROIHsv],[0],mask,[180],[0,180])
+        roi_hist = cv2.normalize(roi_hist,roi_hist,0,255,cv2.NORM_MINMAX)
+        #roi_hist = roi_hist.reshape(-1)
+        
+        term_crit = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT ,10,1)
+        
+        img1 = ROIGray
+        kp1, des1 = orb.detectAndCompute(img1,None)
+        while(cap.isOpened()):
+            ret,frame = cap.read()
+
+            hsvFrame = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
+            
+            hsvFrame = cv2.GaussianBlur(hsvFrame,(15,15),0)
+
+            kernel = np.ones((11,11),np.uint8)
+
+            hsvFrame = cv2.erode(hsvFrame,kernel,iterations=1)
+            hsvFrame = cv2.dilate(hsvFrame,kernel,iterations=1)
+
+            hsvFrame = cv2.erode(hsvFrame,kernel,iterations=1)
+            hsvFrame = cv2.dilate(hsvFrame,kernel,iterations=1)
+
+            backProj = cv2.calcBackProject([hsvFrame],[0],roi_hist,[0,180],1)
+            retval, threshold = cv2.threshold(backProj, 40, 255, cv2.THRESH_BINARY)
+            backProj = cv2.normalize(threshold,threshold,0,255,cv2.NORM_MINMAX)
+
+            ret,roiBox = cv2.CamShift(backProj,roiBox,term_crit)
+
+            pts = cv2.boxPoints(ret)
+            pts = np.int0(pts)
+
+            s = pts.sum(axis = 1)
+            tl = pts[np.argmin(s)]
+            br = pts[np.argmax(s)]
+                    
+            diff = np.diff(pts,axis=1)
+            tr = pts[np.argmin(diff)]
+            bl = pts[np.argmax(diff)]
+
+            
+            
+            
+
+            camImage = cv2.polylines(frame,[pts],True, 255,2)
+            pts = np.array(pts)
+            print "Ret:---------"
+            print ret
+            print "------"
+            print "RoiBox:-------"
+            print roiBox
+            print "-------"
+
+            cv2.imshow('img2',camImage)
+            cv2.imshow('BackProj',backProj)
+            p = cv2.waitKey(60) & 0xFF
+            if p == ord('q'):
+                breakStatus = False
+                break
+            
+            img2 = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
+            kp2, des2 = orb.detectAndCompute(img2,None)
+
+            bf = cv2.BFMatcher()
+
+            matches = bf.knnMatch(des1,des2,k=2)
+            #matches = sorted(matches,key = lambda x:x.distance)
+            matchesMask = [[0,0] for i in xrange(len(matches))]
+            good=[]
+
+            # ratio test as per Lowe's paper
+            good = []
+            for m,n in matches:
+                if m.distance < 0.6*n.distance:
+                    good.append(m)
+
+            MIN_MATCH_COUNT=3
+            if len(good)>MIN_MATCH_COUNT:
+                src_pts = np.float32([ kp1[m.queryIdx].pt for m in good ]).reshape(-1,1,2)
+                dst_pts = np.float32([ kp2[m.trainIdx].pt for m in good ]).reshape(-1,1,2)
+
+                M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC,5.0)
+                matchesMask = mask.ravel().tolist()
+
+                h,w = img1.shape
+                pts = np.float32([ [0,0],[0,h-1],[w-1,h-1],[w-1,0] ]).reshape(-1,1,2)
+                dst = cv2.perspectiveTransform(pts,M)
+
+                img2 = cv2.polylines(img2,[np.int32(dst)],True,255,3, cv2.LINE_AA)
+
+            else:
+                print "Not enough matches are found - %d/%d" % (len(good),MIN_MATCH_COUNT)
+                matchesMask = None
+
+            draw_params = dict(matchColor = (0,255,0),
+                               singlePointColor = (255,0,0),
+                               matchesMask = matchesMask,
+                               flags = 2)
+                                
+            img3 = cv2.drawMatches(img1,kp1,img2,kp2,good,None,**draw_params)
+
+            cv2.imshow('Matches',img3)
+            p = cv2.waitKey(60) & 0xFF
+            if p == ord('q'):
+                break
+
+# -------- objSelect Function End -----------------
+
+
+
+cap = cv2.VideoCapture(0)
+# Initiate SIFT detector
+orb = cv2.xfeatures2d.SURF_create()
+
+while(cap.isOpened()):
+    ret,frame = cap.read()
+    
+    
+    cv2.imshow('Frame',frame)
+    k = cv2.waitKey(60) & 0xFF
+    if k == ord('q'):
+        
+        break
+    elif k == ord('c'):
+        
+        originalCap = None
+        originalCap = frame.copy()
+        originalCap2 = frame.copy()
+        img3=[]
+        img1=[]
+        img2=[]
+        kp1=None
+        des1=None
+        cv2.imshow('Captured',originalCap)
+        roiPts=[]
+        cv2.setMouseCallback('Captured',objSelect,originalCap)
+
+#img1 = cv2.imread('box.png',0)          # queryImage
+#img2 = cv2.imread('box_in_scene.png',0) # trainImage
+
+        
+        
+        # find the keypoints and descriptors with SIFT
+
+        
+        
+        
+
+cap.release()
+cv2.destroyAllWindows()

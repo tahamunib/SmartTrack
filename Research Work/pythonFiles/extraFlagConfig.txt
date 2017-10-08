@@ -1,0 +1,8 @@
+flagTrimVideo:
+
+true:
+	write only the redacted portion.
+	
+false:
+	write full length video with redaction of given time.
+	

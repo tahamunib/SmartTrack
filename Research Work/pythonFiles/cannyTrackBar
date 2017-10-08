@@ -1,0 +1,31 @@
+import cv2
+import numpy
+from matplotlib import pyplot as plt
+
+def nothing(x):
+    pass
+
+img = cv2.imread('messi_5.jpg',0)
+cv2.namedWindow('Image')
+cv2.createTrackbar('max','Image',100,150,nothing)
+cv2.createTrackbar('min','Image',0,50,nothing)
+
+
+
+while(1):
+    
+    
+    max = cv2.getTrackbarPos('max','Image')
+    min = cv2.getTrackbarPos('min','Image')
+    edges = cv2.Canny(img,min,max)
+    cv2.imshow('Image',edges)
+    k = cv2.waitKey(1)
+    if k == ord('q'):
+        break
+
+    
+cv2.destroyAllWindows()
+
+
+
+

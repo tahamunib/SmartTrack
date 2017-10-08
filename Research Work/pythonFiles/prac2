@@ -1,0 +1,54 @@
+import cv2
+import numpy as np
+from matplotlib import pyplot as plt
+
+boxes=[]
+
+def draw_circle(event,x,y,flags,param):
+    global mask
+    mask = np.ones_like(param)
+    if event == cv2.EVENT_LBUTTONDOWN:
+        sbox = [x,y]
+        boxes.append(sbox)
+        
+        
+    if event == cv2.EVENT_LBUTTONUP:
+        ebox = [x,y]
+        boxes.append(ebox)
+        sX,sY = boxes[0]
+        eX,eY = boxes[1]
+        #print sX,sY
+        
+        mask = cv2.rectangle(mask,(sX,sY),(eX,eY),(0,255,0),2)
+        h,w = eY-sY,eX-sX
+        cropimg = param[sY:eY,sX:eX]
+        
+        cropimg=cv2.cvtColor(cropimg,cv2.COLOR_BGR2RGB)
+        plt.imshow(cropimg),plt.axis("off"),plt.show()
+        boxes.pop()
+        print boxes
+        boxes.pop()
+        print boxes
+        return mask
+        
+cap = cv2.VideoCapture(0)
+
+
+while(1):
+    ret, frame = cap.read()
+    #cv2.imshow('Video',frame)
+    img = cv2.setMouseCallback('None',draw_circle,frame)
+    img = cv2.setMouseCallback('Video',draw_circle,frame)
+    if img==None:
+        cv2.imshow('None',frame)
+    else:
+        img = cv2.add(frame,mask)
+        cv2.imshow('Video',img)
+    k = cv2.waitKey(60) & 0xFF
+    if k==27:
+        break
+
+    
+
+cap.release()
+cv2.destroyAllWindows()

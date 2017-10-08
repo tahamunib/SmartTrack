@@ -1,0 +1,1 @@
+{\"inputFile\":\"C:/Python27/d1.mp4\",\"startSec\":5,\"endSec\":20,\"outputFile\":\"C:/Python27/newTrackingRedact.mp4\",\"box\":{\"TL\":[379,214],\"BR\":[538,408]},\"trimVideo\":\"True\",\"blurValue\":50}

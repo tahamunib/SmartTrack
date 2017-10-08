@@ -1,0 +1,2 @@
+command = ['ffmpeg','-y', '-i', 'd1.mp4' ,'-s', '640x480' ,'-b', '512k', '-vcodec', 'mpeg4', '-acodec', 'copy', 'newTrackingRedactCompressed.mp4']
+>>> subprocess.call(command)
