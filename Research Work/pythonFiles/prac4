@@ -1,0 +1,44 @@
+import cv2
+import numpy as np
+
+
+
+def funcBtnClick(event,x,y,flags,param):
+    global rectPts,captured
+    if event == cv2.EVENT_LBUTTONDOWN and len(rectPts) < 2:
+        rectPts.append((x,y))
+        cv2.circle(captured,(x,y),4,(255,0,0),2)
+        cv2.imshow('Captured',captured)
+    if len(rectPts) == 2:
+        rectPts = np.array(rectPts)
+        s = rectPts.sum(axis=1)
+        tl = rectPts[np.argmin(s)]
+        br = rectPts[np.argmax(s)]
+
+        #cv2.rectangle(captured,(tl[0],tl[1]),(br[0],br[1]),(255,0,0),2)
+        
+        cv2.boxFilter(captured,0,(7,7),captured,(-1,-1),False,cv2.BORDER_DEFAULT)
+        
+        cv2.imshow('Captured',captured)
+        
+        
+        
+    
+
+cap = cv2.VideoCapture(0)
+
+while(1):
+    ret,frame = cap.read()
+    cv2.imshow('Frame',frame)
+    k = cv2.waitKey(60) & 0xFF
+    if k==ord('q'):
+        break
+    elif k == ord('c'):
+        rectPts = []
+        captured = frame
+        cv2.imshow('Captured',captured)
+        cv2.setMouseCallback('Captured',funcBtnClick)
+        
+
+cap.release()
+cv2.destroyAllWindows()

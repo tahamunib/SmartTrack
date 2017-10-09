@@ -1,0 +1,10 @@
+import cv2
+import numpy as np
+
+img = cv2.imread('messi_5.jpg')
+
+high = cv2.pyrDown(img)
+
+cv2.imshow('Image',high)
+cv2.imshow('Image 2',cv2.pyrDown(high))
+cv2.waitKey(0)

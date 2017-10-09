@@ -1,0 +1,24 @@
+import cv2
+import numpy as np
+from matplotlib import pyplot as plt
+
+
+img = cv2.imread('messi_5.jpg',1)
+img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+                   
+# Output dtype = cv2.CV_8U
+sobelx8u = cv2.Sobel(img,cv2.CV_8U,1,0,ksize=5)
+
+K = np.ones((2,2),np.uint8)
+
+edge = cv2.Canny(img,100,200,5)
+
+cv2.imshow('Image',img)
+cv2.imshow('Edges',edge)
+cv2.waitKey(0)
+
+##plt.subplot(121),plt.imshow(img,cmap='gray'),plt.title('Original')
+##plt.xticks([]), plt.yticks([])
+##plt.subplot(122),plt.imshow(edge,cmap='gray'),plt.title('Edges')
+##plt.xticks([]), plt.yticks([])
+##plt.show()

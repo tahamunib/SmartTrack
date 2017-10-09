@@ -1,0 +1,17 @@
+import cv2
+import numpy as np
+
+img = cv2.imread('fly.png')
+#gray= cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+
+print img
+surf = cv2.SURF()
+kp = surf.detect(img,None)
+print len(kp)
+
+surf.hessianThreshold = 50000
+kp = surf.detect(img,None)
+          
+img=cv2.drawKeypoints(img,kp,flags=cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+
+cv2.imwrite('surf_keypoints2.jpg',img)
