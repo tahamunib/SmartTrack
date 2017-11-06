@@ -130,6 +130,8 @@ def objSelect(event,x,y,flags,param):
 		cv2.rectangle(originalCap,first,third,(0,255,0),2)
 		
 		ROI = originalCap[tl[1]:br[1],tl[0]:br[0]]
+
+		#cv2.imwrite('ROISaved.jpg',ROI)
 		
 		roiBox = (tl[0],tl[1],br[0],br[1])    
 
@@ -138,8 +140,8 @@ def objSelect(event,x,y,flags,param):
 
 # --------- Code Start (Entry Point) ---------
 
-cap = cv2.VideoCapture('C:/Python27/y1.mp4')
-# cap = cv2.VideoCapture(0)
+#cap = cv2.VideoCapture('E:/Taha/Videos/trackerTest.mp4')
+cap = cv2.VideoCapture(0)
 while(cap.isOpened()):
 	ret,frame = cap.read()
 	cv2.imshow('Frame',frame)
@@ -175,6 +177,7 @@ try:
 		term_crit = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT ,10,1)
 		print roiPts
 		func(roi_hist,roiBox,term_crit)
+		
 	
 except NameError:
 	print 'Error'

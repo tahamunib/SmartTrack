@@ -155,7 +155,7 @@ def objSelect(event,x,y,flags,param):
 # --------- Code Start (Entry Point) ---------
 
 #cap = cv2.VideoCapture(0)
-cap = cv2.VideoCapture('C:/Python27/d1.mp4')
+cap = cv2.VideoCapture('E:/Taha/Videos/trackerTest.mp4')
 
 ##fourcc = cv2.CV_FOURCC('m', 'p', '4', 'v')
 fourcc = cv2.VideoWriter_fourcc('F', 'M', 'P', '4')
